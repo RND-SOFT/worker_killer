@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
 module WorkerKiller
-    VERSION = '0.0.9'
+
+  VERSION = '0.1.0'
+
 end
+

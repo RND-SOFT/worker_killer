@@ -19,7 +19,7 @@ RSpec.describe WorkerKiller::Middleware do
   end
 
   describe WorkerKiller::Middleware::RequestsLimiter do
-    let(:options){ {reaction: reaction, min: 1111 } }
+    let(:options){ { reaction: reaction, min: 1111 } }
     subject{ described_class.new(app, options) }
 
     it 'is expected to be initialized with reaction' do
@@ -31,7 +31,7 @@ RSpec.describe WorkerKiller::Middleware do
   end
 
   describe WorkerKiller::Middleware::OOMLimiter do
-    let(:options){ {reaction: reaction, min: 2222 } }
+    let(:options){ { reaction: reaction, min: 2222 } }
     subject{ described_class.new(app, options) }
 
     it 'is expected to be initialized with reaction' do
@@ -41,6 +41,5 @@ RSpec.describe WorkerKiller::Middleware do
       expect(subject.limiter.reaction).to eq(reaction)
     end
   end
-
 end
 
