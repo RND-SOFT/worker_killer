@@ -37,7 +37,7 @@ Add these lines to your `config.ru` or `application.rb`. (These lines should be 
 
 This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::MemoryLimiter and some Rack integration.
 
-### `WorkerKiller::Middleware::RequestsLimiter`
+### WorkerKiller::Middleware::RequestsLimiter
 
 This module automatically restarts the kill workers, based on the number of requests which worker processed.
 
@@ -45,7 +45,7 @@ This module automatically restarts the kill workers, based on the number of requ
 
 If `verbose` is set to true, then after every request, your log will show the requests left before restart.  This logging is done at the `info` level.
 
-### `WorkerKiller::Middleware::OOMLimiter`
+### WorkerKiller::Middleware::OOMLimiter
 
 This module automatically restarts the Unicorn workers, based on its memory size.
 
