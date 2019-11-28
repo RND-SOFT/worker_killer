@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    worker_killer (0.0.9)
+    worker_killer (0.1.0)
       get_process_mem
 
 GEM
