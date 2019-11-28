@@ -16,21 +16,24 @@ Planned:
 # Install
 
 No external process like `god` is required. Just install one gem: `worker-killer`.
-
-    gem 'worker-killer'
+```ruby
+  gem 'worker-killer'
+```
 
 # Usage
 
 Add these lines to your `config.ru` or `application.rb`. (These lines should be added above the `require ::File.expand_path('../config/environment',  __FILE__)` line.
 
-    # self-process killer
-    require 'worker_killer/middleware'
-    
-    # Max requests per worker
-    config.middleware.insert_before(Rack::Sendfile, WorkerKiller::Middleware::RequestsLimiter, min: 4096, max: 5120)
-    
-    # Max memory size (RSS) per worker
-    config.middleware.insert_before(Rack::Sendfile, WorkerKiller::Middleware::OOMLimiter, min: 300 * (1024**2), max: 400 * (1024**2))
+```ruby
+  # self-process killer
+  require 'worker_killer/middleware'
+  
+  # Max requests per worker
+  config.middleware.insert_before(Rack::Sendfile, WorkerKiller::Middleware::RequestsLimiter, min: 4096, max: 5120)
+  
+  # Max memory size (RSS) per worker
+  config.middleware.insert_before(Rack::Sendfile, WorkerKiller::Middleware::OOMLimiter, min: 300 * (1024**2), max: 400 * (1024**2))
+```
 
 This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::MemoryLimiter and some Rack integration.
 
