@@ -7,7 +7,7 @@ Kill any workers by memory and request counts or take custom reaction. Inspired 
 Features:
 
 * generic middleware implementation
-* custom reactin hook
+* custom reaction hook
 
 Planned:
 
