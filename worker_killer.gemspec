@@ -1,24 +1,37 @@
 $:.push File.expand_path('lib', __dir__)
 
-Gem::Specification.new do |gem|
-  gem.name        = 'worker_killer'
-  gem.description = 'Kill any workers by memory and request counts or take custom reaction'
-  gem.homepage    = 'https://github.com/RnD-Soft/worker_killer'
-  gem.summary     = gem.description
-  gem.version     = File.read('VERSION').strip
-  gem.authors     = ['Samoilenko Yuri']
-  gem.email       = ['kinnalru@gmail.com']
-  gem.files       = `git ls-files`.split("\n")
-  gem.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")
-  gem.executables = `git ls-files -- bin/*`.split("\n").map{|f| File.basename(f) }
-  gem.license     = 'MIT'
-  gem.require_paths = ['lib']
+# Maintain your gem's version:
+require 'worker_killer/version'
 
-  gem.add_dependency 'get_process_mem'
+Gem::Specification.new 'worker_killer' do |spec|
+  spec.version     = ENV['BUILDVERSION'].to_i > 0 ? "#{WorkerKiller::VERSION}.#{ENV['BUILDVERSION'].to_i}" : WorkerKiller::VERSION
+  spec.authors     = ['Samoilenko Yuri']
+  spec.email       = ['kinnalru@gmail.com']
 
-  gem.add_development_dependency 'rspec'
-  gem.add_development_dependency 'rspec_junit_formatter'
-  gem.add_development_dependency 'simplecov'
-  gem.add_development_dependency 'simplecov-console'
+  spec.summary     = 'Kill any workers by memory and request counts or take custom reaction'
+  spec.description = spec.summary
+
+  spec.homepage    = 'https://github.com/RnD-Soft/worker_killer'
+  spec.license     = 'MIT'
+
+  spec.files       = Dir['{lib}/**/*', 'AUTHORS', 'README.md', 'LICENSE"'].reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
+
+  spec.test_files = Dir['**/*'].select do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
+
+  spec.require_paths = ['lib']
+
+  spec.add_dependency 'get_process_mem'
+
+  spec.add_development_dependency 'bundler', '~> 2.0', '>= 2.0.1'
+  spec.add_development_dependency 'rake'
+
+  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec_junit_formatter'
+  spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'simplecov-console'
 end
 

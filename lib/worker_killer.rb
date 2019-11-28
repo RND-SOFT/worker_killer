@@ -1,3 +1,4 @@
+require 'worker_killer/version'
 require 'worker_killer/configuration'
 require 'worker_killer/count_limiter'
 require 'worker_killer/memory_limiter'
@@ -36,11 +37,11 @@ module WorkerKiller
     if configuration.use_quit
       sig = :QUIT
       sig = :TERM if @kill_attempts > configuration.quit_attempts
+      sig = :KILL if @kill_attempts > (configuration.quit_attempts + configuration.kill_attempts)
     else
       sig = :TERM
+      sig = :KILL if @kill_attempts > configuration.kill_attempts
     end
-
-    sig = :KILL if @kill_attempts > configuration.kill_attempts
 
     logger.warn "#{self} send SIG#{sig} (pid: #{self_pid}) alive: #{alive_sec} sec (trial #{@kill_attempts})"
     Process.kill sig, self_pid

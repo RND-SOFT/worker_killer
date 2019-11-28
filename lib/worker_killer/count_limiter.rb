@@ -1,7 +1,8 @@
 module WorkerKiller
   class CountLimiter
 
-    attr_reader :min, :max, :limit, :started_at
+    attr_reader :min, :max, :left, :limit, :started_at
+    attr_accessor :reaction
 
     def initialize(min: 3072, max: 4096, verbose: false, &block)
       @min = min

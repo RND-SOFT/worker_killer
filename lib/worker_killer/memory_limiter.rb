@@ -4,6 +4,7 @@ module WorkerKiller
   class MemoryLimiter
 
     attr_reader :min, :max, :limit, :started_at, :check_cycle
+    attr_accessor :reaction
 
     def initialize(min: (1024**3), max: (2 * (1024**3)), check_cycle: 16, verbose: false, &block)
       @min = min
@@ -21,7 +22,7 @@ module WorkerKiller
       @started_at ||= Time.now
       @check_count += 1
 
-      return false if (@check_count % @check_cycle) != 0
+      return nil if (@check_count % @check_cycle) != 0
 
       rss = GetProcessMem.new.bytes
       if @verbose

@@ -4,6 +4,8 @@ require 'worker_killer/count_limiter'
 module WorkerKiller
   class Middleware
 
+    attr_reader :limiter
+
     def initialize(app, klass:, reaction: nil, **opts)
       @app = app
 
@@ -11,9 +13,7 @@ module WorkerKiller
         WorkerKiller.kill_self(limiter.logger, limiter.started_at)
       end
 
-      @limiter = klass.new(opts) do |limiter|
-        reaction.call(limiter)
-      end
+      @limiter = klass.new(opts, &reaction)
     end
 
     def call(env)
