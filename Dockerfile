@@ -15,7 +15,7 @@ RUN set -ex \
   && apk add --no-cache build-base git curl
 
 ADD Gemfile Gemfile.lock *.gemspec /home/app/
-ADD lib/main_loop/version.rb /home/app/lib/main_loop/
+ADD lib/worker_killer/version.rb /home/app/lib/worker_killer/
 
 RUN set -ex \
   && curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter \
