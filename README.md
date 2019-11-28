@@ -1,5 +1,14 @@
 # worker-killer
 
+[![Gem Version](https://badge.fury.io/rb/worker_killer.svg)](https://rubygems.org/gems/worker_killer)
+[![Gem](https://img.shields.io/gem/dt/worker_killer.svg)](https://rubygems.org/gems/worker_killer/versions)
+[![YARD](https://badgen.net/badge/YARD/doc/blue)](http://www.rubydoc.info/gems/worker_killer)
+
+[![Coverage](https://lysander.x.rnds.pro/api/v1/badges/wkiller_coverage.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_coverage.html)
+[![Quality](https://lysander.x.rnds.pro/api/v1/badges/wkiller_quality.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_quality.html)
+[![Outdated](https://lysander.x.rnds.pro/api/v1/badges/wkiller_outdated.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_outdated.html)
+[![Vulnerabilities](https://lysander.x.rnds.pro/api/v1/badges/wkiller_vulnerable.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_vulnerable.html)
+
 Kill any workers by memory and request counts or take custom reaction. Inspired by [unicorn-worker-killer](https://github.com/kzk/unicorn-worker-killer).
 
 `worker-killer` gem provides automatic restart of Web-server based on 1) max number of requests, and 2) process memory size (RSS). This will greatly improves site's stability by avoiding unexpected memory exhaustion at the application nodes.
