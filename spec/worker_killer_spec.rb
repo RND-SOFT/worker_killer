@@ -23,6 +23,27 @@ RSpec.describe WorkerKiller do
     end
   end
 
+  describe '#kill_by_signal' do
+    [:QUIT, :TERM, :KILL].each do |sig|
+      it "must send #{sig} signal" do
+        pid = rand(1000)
+        expect(Process).to receive(:kill).with(sig, pid)
+        WorkerKiller.kill_by_signal(logger, 11111, sig, pid)
+      end
+    end
+  end
+
+  describe '#kill_by_passenger' do
+    it "must run passenger-config" do
+      pid = rand(1000)
+      path = "passenger-config-#{rand(1000)}"
+      expect(Kernel).to receive(:system).with("#{path} detach-process #{pid}").and_return(true)
+
+      thread = WorkerKiller.kill_by_passenger(logger, 11111, path, pid)
+      thread.join
+    end
+  end
+
   describe '#kill_self' do
     context 'with use_quit TRUE' do
       around do |example|
@@ -35,9 +56,10 @@ RSpec.describe WorkerKiller do
       end
 
       it 'expect right signal order' do
-        expect(Process).to receive(:kill).with(:QUIT, anything).exactly(2).times
-        expect(Process).to receive(:kill).with(:TERM, anything).exactly(2).times
-        expect(Process).to receive(:kill).with(:KILL, anything).exactly(5).times
+        expect(WorkerKiller).to receive(:kill_by_signal).with(logger, anything, :QUIT, anything).exactly(2).times
+        expect(WorkerKiller).to receive(:kill_by_signal).with(logger, anything, :TERM, anything).exactly(2).times
+        expect(WorkerKiller).to receive(:kill_by_signal).with(logger, anything, :KILL, anything).exactly(5).times
+
         2.times { WorkerKiller.kill_self(logger, Time.now) } # 2 QUIT
         2.times { WorkerKiller.kill_self(logger, Time.now) } # 2 TERM
         5.times { WorkerKiller.kill_self(logger, Time.now) } # other - KILL
@@ -55,8 +77,9 @@ RSpec.describe WorkerKiller do
       end
 
       it 'expect right signal order' do
-        expect(Process).to receive(:kill).with(:TERM, anything).exactly(2).times
-        expect(Process).to receive(:kill).with(:KILL, anything).exactly(5).times
+        expect(WorkerKiller).to receive(:kill_by_signal).with(logger, anything, :TERM, anything).exactly(2).times
+        expect(WorkerKiller).to receive(:kill_by_signal).with(logger, anything, :KILL, anything).exactly(5).times
+
         2.times { WorkerKiller.kill_self(logger, Time.now) } # 2 TERM
         5.times { WorkerKiller.kill_self(logger, Time.now) } # other - KILL
       end

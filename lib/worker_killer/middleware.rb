@@ -9,6 +9,8 @@ module WorkerKiller
     def initialize(app, klass:, reaction: nil, **opts)
       @app = app
 
+      @passenger = system('which passenger')
+
       reaction ||= proc do |limiter|
         WorkerKiller.kill_self(limiter.logger, limiter.started_at)
       end

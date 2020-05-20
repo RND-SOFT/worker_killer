@@ -29,7 +29,6 @@ module WorkerKiller
   # signal. A single signal is sent per request.
   def self.kill_self(logger, start_time)
     alive_sec = (Time.now - start_time).round
-    self_pid = Process.pid
 
     @kill_attempts ||= 0
     @kill_attempts += 1
@@ -43,8 +42,26 @@ module WorkerKiller
       sig = :KILL if @kill_attempts > configuration.kill_attempts
     end
 
-    logger.warn "#{self} send SIG#{sig} (pid: #{self_pid}) alive: #{alive_sec} sec (trial #{@kill_attempts})"
-    Process.kill sig, self_pid
+    if sig == :QUIT && configuration.passenger?
+      kill_by_passenger(logger, alive_sec, configuration.passenger_config, Process.pid)
+    else
+      kill_by_signal(logger, alive_sec, sig, Process.pid)
+    end
+  end
+
+  def self.kill_by_signal(logger, alive_sec, signal, pid)
+    logger.warn "#{self} send SIG#{signal} (pid: #{pid}) alive: #{alive_sec} sec (trial #{@kill_attempts})"
+    Process.kill signal, pid
+  end
+
+  def self.kill_by_passenger(logger, alive_sec, passenger, pid)
+    cmd = "#{passenger} detach-process #{pid}"
+    logger.warn "#{self} run #{cmd.inspect} (pid: #{pid}) alive: #{alive_sec} sec (trial #{@kill_attempts})"
+    Thread.new(cmd) do |command|
+      unless Kernel.system(command)
+        logger.warn "#{self} run #{cmd.inspect} failed: #{$?.inspect}"
+      end
+    end
   end
 
 end
