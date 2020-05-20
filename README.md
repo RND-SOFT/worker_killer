@@ -9,13 +9,14 @@
 [![Outdated](https://lysander.x.rnds.pro/api/v1/badges/wkiller_outdated.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_outdated.html)
 [![Vulnerabilities](https://lysander.x.rnds.pro/api/v1/badges/wkiller_vulnerable.svg)](https://lysander.x.rnds.pro/api/v1/badges/wkiller_vulnerable.html)
 
-Kill any workers by memory and request counts or take custom reaction. Inspired by [unicorn-worker-killer](https://github.com/kzk/unicorn-worker-killer).
+Kill any workers by memory and/or request counts or take custom reaction. Inspired by [unicorn-worker-killer](https://github.com/kzk/unicorn-worker-killer).
 
 `worker-killer` gem provides automatic restart of Web-server based on 1) max number of requests, and 2) process memory size (RSS). This will greatly improves site's stability by avoiding unexpected memory exhaustion at the application nodes.
 
 Features:
 
 * generic middleware implementation
+* Phusion Passenger support(through `passenger-config detach-process <PID>`)
 * custom reaction hook
 
 Planned:
@@ -48,7 +49,7 @@ This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::Memo
 
 ### WorkerKiller::Middleware::RequestsLimiter
 
-This module automatically restarts the kill workers, based on the number of requests which worker processed.
+This module automatically restarts/kills the workers, based on the number of requests which worker processed.
 
 `min` and `max` specify the min and max of maximum requests per worker. The actual limit is decided by rand() between `min` and `max` per worker, to prevent all workers to be dead at the same time. Once the number exceeds the limit, that worker is automatically restarted.
 
@@ -56,7 +57,7 @@ If `verbose` is set to true, then after every request, your log will show the re
 
 ### WorkerKiller::Middleware::OOMLimiter
 
-This module automatically restarts the Unicorn workers, based on its memory size.
+This module automatically restarts/kills the workers, based on its memory size.
 
 `min` and `max` specify the min and max of maximum memory in bytes per worker. The actual limit is decided by rand() between `min` and `max` per worker, to prevent all workers to be dead at the same time.  Once the memory size exceeds `memory_size`, that worker is automatically restarted.
 

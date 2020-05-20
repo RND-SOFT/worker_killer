@@ -55,6 +55,9 @@ module WorkerKiller
   end
 
   def self.kill_by_passenger(logger, alive_sec, passenger, pid)
+    return if @already_detached
+    @already_detached = true
+
     cmd = "#{passenger} detach-process #{pid}"
     logger.warn "#{self} run #{cmd.inspect} (pid: #{pid}) alive: #{alive_sec} sec (trial #{@kill_attempts})"
     Thread.new(cmd) do |command|
