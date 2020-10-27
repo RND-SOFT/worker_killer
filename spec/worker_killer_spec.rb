@@ -12,6 +12,5 @@ RSpec.describe WorkerKiller do
       end
     end
   end
-
 end
 

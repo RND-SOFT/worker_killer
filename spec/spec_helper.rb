@@ -29,8 +29,7 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
 SimpleCov.start
 
 require 'worker_killer'
-require 'worker_killer/killer/passenger'
-require 'worker_killer/killer/signal'
+require 'worker_killer/delayed_job_plugin'
 
 $root = File.join(File.dirname(__dir__), 'spec')
 Dir[File.join(__dir__, 'support', '**', '*.rb')].sort.each {|f| require f }

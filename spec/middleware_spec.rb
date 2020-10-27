@@ -4,8 +4,8 @@ RSpec.describe WorkerKiller::Middleware do
   let(:logger){ Logger.new(nil) }
 
   let(:app){ double }
-  let(:killer) {double}
-  let(:reaction){ double}
+  let(:killer) { double }
+  let(:reaction){ double }
   let(:anykey){ SecureRandom.hex(8) }
 
   describe 'Custom class' do

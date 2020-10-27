@@ -7,11 +7,11 @@ RSpec.describe WorkerKiller::Killer::Passenger do
     end
   end
 
-  let(:killer){described_class.new(logger: logger)}
+  let(:killer){ described_class.new(logger: logger) }
 
   describe '#kill' do
     before do
-      allow(described_class).to receive(:check_passenger_config).and_return("custompath")
+      allow(described_class).to receive(:check_passenger_config).and_return('custompath')
     end
 
     around do |example|
@@ -33,12 +33,11 @@ RSpec.describe WorkerKiller::Killer::Passenger do
       2.times { killer.kill(Time.now) } # 1 TERM
       5.times { killer.kill(Time.now) } # 5 KILL
     end
-
   end
 
   describe '#check_passenger_config!' do
     it do
-      expect{described_class.check_passenger_config!('nonenone')}.to raise_error(/Can't find passenger/)
+      expect{ described_class.check_passenger_config!('nonenone') }.to raise_error(/Can't find passenger/)
     end
   end
 end

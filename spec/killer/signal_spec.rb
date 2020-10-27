@@ -7,7 +7,7 @@ RSpec.describe WorkerKiller::Killer::Signal do
     end
   end
 
-  let(:killer){described_class.new(logger: logger)}
+  let(:killer){ described_class.new(logger: logger) }
 
   describe '#kill' do
     context 'with use_quit TRUE' do
@@ -30,7 +30,6 @@ RSpec.describe WorkerKiller::Killer::Signal do
         5.times { killer.kill(Time.now) } # 1 KILL
       end
     end
-
   end
 end
 

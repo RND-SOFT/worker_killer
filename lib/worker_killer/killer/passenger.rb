@@ -22,7 +22,7 @@ module WorkerKiller
         end
 
         return if @already_detached
-  
+
         logger.warn "#{self} run #{cmd.inspect} (pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts})"
         @already_detached = true
 
@@ -36,16 +36,14 @@ module WorkerKiller
       def self.check_passenger_config path
         path.strip!
         help = `#{path} detach-process --help 2> /dev/null`
-        if help['Remove an application process from the Phusion Passenger process pool']
-          return path
-        end
+        return path if help['Remove an application process from the Phusion Passenger process pool']
       rescue StandardError => e
-        return nil
+        nil
       end
 
       def self.check_passenger_config! path
         if path = check_passenger_config(path)
-          return path
+          path
         else
           raise "Can't find passenger config at #{path.inspect}"
         end
@@ -54,3 +52,4 @@ module WorkerKiller
     end
   end
 end
+

@@ -19,27 +19,25 @@ module WorkerKiller
       !@passenger_config.nil?
     end
 
-    def check_passenger provided_path
+    def check_passenger(provided_path)
       if provided_path.nil? || provided_path.empty?
-        return check_passenger_config(`which passenger-config`)
+        check_passenger_config(`which passenger-config`)
       else
-        return check_passenger_config!(provided_path)
+        check_passenger_config!(provided_path)
       end
     end
 
     def check_passenger_config path
       path.strip!
       help = `#{path} detach-process --help 2> /dev/null`
-      if help['Remove an application process from the Phusion Passenger process pool']
-        return path
-      end
+      return path if help['Remove an application process from the Phusion Passenger process pool']
     rescue StandardError => e
-      return nil
+      nil
     end
 
     def check_passenger_config! path
       if path = check_passenger_config(path)
-        return path
+        path
       else
         raise "Can't find passenger config at #{path.inspect}"
       end

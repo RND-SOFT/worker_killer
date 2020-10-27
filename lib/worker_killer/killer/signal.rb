@@ -13,3 +13,4 @@ module WorkerKiller
     end
   end
 end
+

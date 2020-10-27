@@ -7,7 +7,7 @@ RSpec.describe WorkerKiller::Killer::Base do
     end
   end
 
-  let(:killer){described_class.new(logger: logger)}
+  let(:killer){ described_class.new(logger: logger) }
 
   describe '#kill' do
     context 'with use_quit TRUE' do
