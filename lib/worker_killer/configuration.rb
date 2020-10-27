@@ -4,12 +4,12 @@ module WorkerKiller
   # Methods for configuring WorkerKiller
   class Configuration
 
-    attr_accessor :logger, :quit_attempts, :kill_attempts, :use_quit, :passenger_config
+    attr_accessor :logger, :quit_attempts, :term_attempts, :use_quit, :passenger_config
 
     # Override defaults for configuration
-    def initialize(quit_attempts: 5, kill_attempts: 10, use_quit: true, passenger_config: nil)
+    def initialize(quit_attempts: 5, term_attempts: 10, use_quit: true, passenger_config: nil)
       @quit_attempts = quit_attempts
-      @kill_attempts = kill_attempts
+      @term_attempts = term_attempts
       @use_quit = use_quit
       @passenger_config = check_passenger(passenger_config)
       @logger = Logger.new(STDOUT, level: Logger::INFO, progname: 'WorkerKiller')
