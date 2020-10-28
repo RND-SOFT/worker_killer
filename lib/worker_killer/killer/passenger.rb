@@ -13,7 +13,7 @@ module WorkerKiller
         end
       end
 
-      def do_kill(sig, pid, alive_sec)
+      def do_kill(sig, pid, alive_sec, **params)
         cmd = "#{passenger_config} detach-process #{pid}"
         if sig == :KILL
           logger.error "#{self} force to kill self (pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts})"

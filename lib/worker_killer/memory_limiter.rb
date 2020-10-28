@@ -4,16 +4,14 @@ module WorkerKiller
   class MemoryLimiter
 
     attr_reader :min, :max, :limit, :started_at, :check_cycle
-    attr_accessor :reaction
 
-    def initialize(min: (1024**3), max: (2 * (1024**3)), check_cycle: 16, verbose: false, &block)
+    def initialize(min: (1024**3), max: (2 * (1024**3)), check_cycle: 16, verbose: false)
       @min = min
       @max = max
       @limit = @min + WorkerKiller.randomize(@max - @min + 1)
       @check_cycle = check_cycle
       @check_count = 0
       @verbose = verbose
-      @reaction = block
     end
 
     def check
@@ -33,7 +31,6 @@ module WorkerKiller
       return false if rss <= @limit
 
       logger.warn "#{self}: worker (pid: #{Process.pid}) exceeds memory limit (#{rss} bytes > #{@limit} bytes)"
-      @reaction.call(self)
 
       true
     end

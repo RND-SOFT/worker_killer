@@ -2,7 +2,7 @@ module WorkerKiller
   module Killer
     class Signal < ::WorkerKiller::Killer::Base
 
-      def do_kill(sig, pid, alive_sec)
+      def do_kill(sig, pid, alive_sec, **params)
         return if sig == @last_signal
 
         @last_signal = sig

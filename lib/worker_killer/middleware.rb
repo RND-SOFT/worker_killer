@@ -4,24 +4,22 @@ require 'worker_killer/count_limiter'
 module WorkerKiller
   class Middleware
 
-    attr_reader :limiter, :killer
+    attr_reader :limiter, :killer, :reaction
 
     def initialize(app, killer:, klass:, reaction: nil, **opts)
       @app = app
       @killer = killer
 
-      reaction ||= proc do |l, k|
+      @reaction = reaction || proc do |l, k|
         k.kill(l.started_at)
       end
 
-      @limiter = klass.new(opts) do |limiter|
-        reaction.call(limiter, killer)
-      end
+      @limiter = klass.new(opts)
     end
 
     def call(env)
       response = @app.call(env)
-      limiter.check
+      reaction.call(limiter, killer) if limiter.check
       response
     end
 

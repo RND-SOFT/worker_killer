@@ -4,30 +4,25 @@ require 'worker_killer/count_limiter'
 module WorkerKiller
   class DelayedJobPlugin
 
-    attr_reader :limiter, :dj
+    attr_reader :limiter, :killer, :reaction
 
     def initialize(klass:, killer:, reaction: nil, **opts)
-      reaction ||= proc do |l, k, _d|
-        k.kill(l.started_at)
+      @killer = killer
+
+      @reaction = reaction || proc do |l, k, dj|
+        k.kill(l.started_at, dj: dj)
       end
 
-      @limiter = klass.new(opts) do |limiter|
-        reaction.call(limiter, killer, dj)
-      end
+      @limiter = klass.new(opts)
     end
 
     def new(*_args)
       configure_lifecycle(Delayed::Worker.lifecycle)
     end
 
-    def configure_lifecycle lifecycle
-      lifecycle.before(:execute) do |worker, *_args|
-        @dj ||= worker
-        killer.dj = dj
-      end
-
-      lifecycle.after(:perform) do |_worker, *_args|
-        limiter.check
+    def configure_lifecycle(lifecycle)
+      lifecycle.after(:perform) do |worker, *_args|
+        reaction.call(limiter, killer, worker) if limiter.check
       end
     end
 

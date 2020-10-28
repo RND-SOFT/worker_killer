@@ -1,5 +1,4 @@
 RSpec.describe WorkerKiller::Killer::Passenger do
-  let(:logger){ Logger.new(nil) }
   let(:config) do
     WorkerKiller::Configuration.new.tap do |c|
       c.quit_attempts = 2
@@ -7,7 +6,7 @@ RSpec.describe WorkerKiller::Killer::Passenger do
     end
   end
 
-  let(:killer){ described_class.new(logger: logger) }
+  let(:killer){ described_class.new() }
 
   describe '#kill' do
     before do

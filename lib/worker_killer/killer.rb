@@ -10,26 +10,23 @@ module WorkerKiller
         @kill_attempts = 0
       end
 
-      def kill(start_time)
+      def kill(start_time, **params)
         alive_sec = (Time.now - start_time).round
 
         @kill_attempts += 1
 
         sig = :QUIT
-        if config.use_quit
-          sig = :TERM if kill_attempts > config.quit_attempts
-          sig = :KILL if kill_attempts > (config.quit_attempts + config.term_attempts)
-        else
-          sig = :TERM
-          sig = :KILL if kill_attempts > config.term_attempts
-        end
+        sig = :TERM if kill_attempts > config.quit_attempts
+        sig = :KILL if kill_attempts > (config.quit_attempts + config.term_attempts)
 
-        do_kill(sig, Process.pid, alive_sec)
+        do_kill(sig, Process.pid, alive_sec, **params)
       end
 
-      def do_kill *_args
+      # :nocov:
+      def do_kill(*_args)
         raise 'Not Implemented'
       end
+      # :nocov:
 
     end
   end

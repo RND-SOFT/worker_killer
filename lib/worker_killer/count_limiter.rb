@@ -2,15 +2,13 @@ module WorkerKiller
   class CountLimiter
 
     attr_reader :min, :max, :left, :limit, :started_at
-    attr_accessor :reaction
 
-    def initialize(min: 3072, max: 4096, verbose: false, &block)
+    def initialize(min: 3072, max: 4096, verbose: false)
       @min = min
       @max = max
       @limit = @min + WorkerKiller.randomize(@max - @min + 1)
       @left = @limit
       @verbose = verbose
-      @reaction = block
     end
 
     def check
@@ -25,7 +23,6 @@ module WorkerKiller
       return false if (@left -= 1) > 0
 
       logger.warn "#{self}: worker (pid: #{Process.pid}) exceeds max number of requests (limit: #{@limit})"
-      @reaction.call(self)
 
       true
     end
