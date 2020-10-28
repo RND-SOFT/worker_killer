@@ -62,7 +62,6 @@ Add these lines to your `initializers/delayed_job.rb` or `application.rb`.
   require 'worker_killer/delayed_job_plugin'
 
   Delayed::Worker.plugins.tap do |plugins|
-    plugins << Gorynich::Head::DelayedJob
     killer = WorkerKiller::Killer::DelayedJob.new
 
     plugins << WorkerKiller::DelayedJobPlugin::JobsLimiter.new(
