@@ -1,11 +1,10 @@
 stages:
-  - tests
   - build
   - deploy
 
 .test:
   image: rnds/ruby:2.5-test
-  stage: tests
+  stage: build
   variables:
     COMPOSE_PROJECT_NAME: wkiller_${CI_PIPELINE_ID}_${CI_JOB_ID}
     GIT_BRANCH: ${CI_COMMIT_REF_NAME}
