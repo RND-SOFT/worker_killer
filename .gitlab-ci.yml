@@ -74,7 +74,7 @@ badges:
   variables:
     BRANCH_LOCK: ci/${CI_PROJECT_NAME}/${CI_COMMIT_REF_SLUG}
     ENV_LOCK: ci/${CI_PROJECT_NAME}/${CI_ENVIRONMENT_SLUG}
-    BADGES: https://lysander.x.rnds.pro/api/v1/badges/wkiller
+    BADGES: https://lysander.rnds.pro/api/v1/badges/wkiller
   script:
     - bundle audit update
     - bundle audit || true

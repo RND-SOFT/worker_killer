@@ -18,9 +18,9 @@ module WorkerKiller
     end
 
     def call(env)
-      response = @app.call(env)
+      @app.call(env)
+    ensure
       reaction.call(limiter, killer) if limiter.check
-      response
     end
 
     class RequestsLimiter < ::WorkerKiller::Middleware

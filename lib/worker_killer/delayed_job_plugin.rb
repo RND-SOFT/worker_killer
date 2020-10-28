@@ -26,6 +26,22 @@ module WorkerKiller
       end
     end
 
+    class JobsLimiter < ::WorkerKiller::DelayedJobPlugin
+
+      def initialize(**opts)
+        super(klass: ::WorkerKiller::CountLimiter, **opts)
+      end
+
+    end
+
+    class OOMLimiter < ::WorkerKiller::DelayedJobPlugin
+
+      def initialize(**opts)
+        super(klass: ::WorkerKiller::MemoryLimiter, **opts)
+      end
+
+    end
+
   end
 end
 
