@@ -14,7 +14,7 @@ module WorkerKiller
         k.kill(l.started_at)
       end
 
-      @limiter = klass.new(opts)
+      @limiter = klass.new(**opts)
     end
 
     def call(env)
