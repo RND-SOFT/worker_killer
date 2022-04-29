@@ -13,7 +13,7 @@ module WorkerKiller
         k.kill(l.started_at, dj: dj)
       end
 
-      @limiter = klass.new(opts)
+      @limiter = klass.new(**opts)
     end
 
     def new(*_args)

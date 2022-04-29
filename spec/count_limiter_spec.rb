@@ -1,5 +1,5 @@
 RSpec.describe WorkerKiller::CountLimiter do
-  subject{ described_class.new(options) }
+  subject{ described_class.new(**options) }
   let(:min){ rand(50..100) }
   let(:max){ min + rand(100) }
   let(:options){ { min: min, max: max, verbose: true } }

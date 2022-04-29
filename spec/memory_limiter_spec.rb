@@ -1,7 +1,7 @@
 RSpec.describe WorkerKiller::MemoryLimiter do
   let(:logger){ Logger.new(nil) }
 
-  subject{ described_class.new(options) }
+  subject{ described_class.new(**options) }
   let(:mb){ 1024 * 1024 }
   let(:min){ rand(50..100) * mb }
   let(:max){ min + rand(100) * mb }

@@ -19,9 +19,15 @@ RSpec.describe WorkerKiller::Killer::Base do
       end
 
       it 'expect right signal order' do
-        expect(killer).to receive(:do_kill).with(:QUIT, anything, anything, anything).exactly(2).times
-        expect(killer).to receive(:do_kill).with(:TERM, anything, anything, anything).exactly(2).times
-        expect(killer).to receive(:do_kill).with(:KILL, anything, anything, anything).exactly(5).times
+        if RUBY_VERSION >= "3.0.0"
+          expect(killer).to receive(:do_kill).with(:QUIT, anything, anything).exactly(2).times
+          expect(killer).to receive(:do_kill).with(:TERM, anything, anything).exactly(2).times
+          expect(killer).to receive(:do_kill).with(:KILL, anything, anything).exactly(5).times
+        else
+          expect(killer).to receive(:do_kill).with(:QUIT, anything, anything, anything).exactly(2).times
+          expect(killer).to receive(:do_kill).with(:TERM, anything, anything, anything).exactly(2).times
+          expect(killer).to receive(:do_kill).with(:KILL, anything, anything, anything).exactly(5).times
+        end
 
         2.times { killer.kill(Time.now) } # 2 QUIT
         2.times { killer.kill(Time.now) } # 2 TERM

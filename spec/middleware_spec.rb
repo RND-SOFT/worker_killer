@@ -9,7 +9,7 @@ RSpec.describe WorkerKiller::Middleware do
   describe 'Custom class' do
     let(:klass){ double }
     let(:options){ { killer: killer, klass: klass, reaction: reaction, anykey: anykey } }
-    subject{ described_class.new(app, options) }
+    subject{ described_class.new(app, **options) }
 
     it 'is expected to be initialized' do
       expect(klass).to receive(:new).with(anykey: anykey).and_return(99)
@@ -20,7 +20,7 @@ RSpec.describe WorkerKiller::Middleware do
 
   describe WorkerKiller::Middleware::RequestsLimiter do
     let(:options){ { killer: killer, min: 3, max: 3 } }
-    subject{ described_class.new(app, options) }
+    subject{ described_class.new(app, **options) }
 
     it 'is expected to be initialized without reaction' do
       expect(WorkerKiller::CountLimiter).to receive(:new).with(min: 3, max: 3).and_call_original
@@ -51,7 +51,7 @@ RSpec.describe WorkerKiller::Middleware do
 
   describe WorkerKiller::Middleware::OOMLimiter do
     let(:options){ { killer: killer, min: 2222, max: 2223 } }
-    subject{ described_class.new(app, options) }
+    subject{ described_class.new(app, **options) }
 
     it 'is expected to be initialized without reaction' do
       expect(WorkerKiller::MemoryLimiter).to receive(:new).with(min: 2222, max: 2223).and_call_original
