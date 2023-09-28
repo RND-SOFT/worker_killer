@@ -10,6 +10,7 @@ module WorkerKiller
         end
 
         dj.stop
+        logger.info "#{self} try to stop DelayedJob due to #{sig} self (pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts})"
 
         return if sig != :TERM
 
