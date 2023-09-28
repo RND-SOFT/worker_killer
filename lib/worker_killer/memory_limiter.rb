@@ -24,13 +24,13 @@ module WorkerKiller
 
       rss = GetProcessMem.new.bytes
       if @verbose
-        logger.info "#{self}: worker (pid: #{Process.pid}) using #{rss} bytes(#{rss / 1024 / 1024}mb)."
+        logger.info "#{self.class}: worker (pid: #{Process.pid}) using #{rss} bytes(#{rss / 1024 / 1024}mb)."
       end
       @check_count = 0
 
       return false if rss <= @limit
 
-      logger.warn "#{self}: worker (pid: #{Process.pid}) exceeds memory limit (#{rss} bytes > #{@limit} bytes)"
+      logger.warn "#{self.class}: worker (pid: #{Process.pid}) exceeds memory limit (#{rss} bytes > #{@limit} bytes)"
 
       true
     end
