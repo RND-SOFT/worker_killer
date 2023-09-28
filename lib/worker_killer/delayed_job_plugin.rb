@@ -14,15 +14,22 @@ module WorkerKiller
       end
 
       @limiter = klass.new(**opts)
+      @time_to_burn = false
     end
 
-    def new(*_args)
-      configure_lifecycle(Delayed::Worker.lifecycle)
+    def new(lifecycle = Delayed::Worker.lifecycle, *_args)
+      configure_lifecycle(lifecycle)
     end
 
     def configure_lifecycle(lifecycle)
+      # Count condition after every job
       lifecycle.after(:perform) do |worker, *_args|
-        reaction.call(limiter, killer, worker) if limiter.check
+        @time_to_burn = limiter.check
+      end
+      
+      # Stop execution only after whole loop completed
+      lifecycle.after(:loop) do |worker, *_args|
+        reaction.call(limiter, killer, worker) if @time_to_burn
       end
     end
 

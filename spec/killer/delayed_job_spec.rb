@@ -6,8 +6,8 @@ RSpec.describe WorkerKiller::Killer::DelayedJob do
     end
   end
 
-  let(:killer){ described_class.new() }
   let(:dj){ double }
+  subject(:killer){ described_class.new() }
 
   describe '#kill' do
     context 'with use_quit TRUE' do
@@ -30,5 +30,6 @@ RSpec.describe WorkerKiller::Killer::DelayedJob do
       end
     end
   end
+  
 end
 
