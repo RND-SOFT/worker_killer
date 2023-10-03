@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    worker_killer (1.0.2)
+    worker_killer (1.0.3)
       get_process_mem
 
 GEM
@@ -10,7 +10,7 @@ GEM
     ansi (1.5.0)
     diff-lcs (1.5.0)
     docile (1.4.0)
-    ffi (1.15.5)
+    ffi (1.16.2)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
     rake (13.0.6)
