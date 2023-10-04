@@ -24,11 +24,12 @@ module WorkerKiller
     def configure_lifecycle(lifecycle)
       # Count condition after every job
       lifecycle.after(:perform) do |worker, *_args|
-        @time_to_burn = limiter.check
+        @time_to_burn ||= limiter.check
       end
       
       # Stop execution only after whole loop completed
       lifecycle.after(:loop) do |worker, *_args|
+        @time_to_burn ||= limiter.check
         reaction.call(limiter, killer, worker) if @time_to_burn
       end
     end
