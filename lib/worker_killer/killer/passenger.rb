@@ -35,8 +35,8 @@ module WorkerKiller
 
       def self.check_passenger_config path
         path.strip!
-        help = `#{path} detach-process --help 2> /dev/null`
-        return path if help['Remove an application process from the Phusion Passenger process pool']
+        help_str = `#{path} detach-process --help 2> /dev/null`
+        return path if help_str['Remove an application process'] || help_str['Phusion Passenger']
       rescue StandardError => e
         nil
       end
