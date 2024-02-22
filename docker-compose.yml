@@ -3,12 +3,12 @@ version: "2.3"
 
 
 services:
-  test-2.6:
+  test-2.7:
     build:
       context: .
       args:
-        RUBY_VERSION: 2.6
-    image: worker-killer-tests:2.6
+        RUBY_VERSION: 2.7
+    image: worker-killer-tests:2.7
     working_dir: /home/app
     
   test-3.0:

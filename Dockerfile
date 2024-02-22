@@ -1,4 +1,4 @@
-ARG RUBY_VERSION=2.6
+ARG RUBY_VERSION=2.7
 
 FROM ruby:${RUBY_VERSION}-alpine
 
@@ -18,9 +18,6 @@ ADD Gemfile Gemfile.lock *.gemspec /home/app/
 ADD lib/worker_killer/version.rb /home/app/lib/worker_killer/
 
 RUN set -ex \
-  && curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter \
-  && chmod +x cc-test-reporter \
-  && gem install bundler && gem update bundler \
   && bundle install --jobs=3 \
   && gem cleanup  \
   && rm -rf /tmp/* /var/tmp/* /usr/src/ruby /root/.gem /usr/local/bundle/cache
