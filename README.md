@@ -17,6 +17,7 @@ Features:
 
 - generic middleware implementation
 - Phusion Passenger support(through `passenger-config detach-process <PID>`)
+- Puma phased-restart support(through `pumactl phased-restart`)
 - DelayedJob support
 - custom reaction hook
 
@@ -42,14 +43,14 @@ Add these lines to your `config.ru` or `application.rb`. (These lines should be 
 
   # Max requests per worker
   middleware.insert_before(
-    Rack::Sendfile,
+    Rack::Runtime,
     WorkerKiller::Middleware::RequestsLimiter, killer: killer, min: 3072, max: 4096
   )
 
   # Max memory size (RSS) per worker
   middleware.insert_before(
-    Rack::Sendfile,
-    WorkerKiller::Middleware::OOMLimiter, killer: killer, min: 500 * (1024**2), max: 600 * (1024**2)
+    Rack::Runtime,
+    WorkerKiller::Middleware::OOMLimiter, killer: killer, min: nil, max: 0.5, check_cycle: 16
   )
 ```
 
@@ -72,6 +73,39 @@ Add these lines to your `initializers/delayed_job.rb` or `application.rb`.
       killer: killer, min: 500 * (1024**2), max: 600 * (1024**2)
     )
   end
+```
+
+## Puma Web-server
+
+Add these lines to your `puma.rb` AND `application.rb`.
+
+```ruby
+  # puma.rb
+
+  on_worker_boot do |*args|
+    require 'worker_killer/killer'
+    require 'active_support/notifications'
+
+    ::ActiveSupport::Notifications.subscribe 'initialize.custom.rails' do |*eargs|
+      event = ActiveSupport::Notifications::Event.new(*eargs)
+      config = event.payload[:config]
+
+      killer = ::WorkerKiller::Killer::Puma.new
+      config.middleware.insert_before(
+        ::Rack::Runtime,
+        ::WorkerKiller::Middleware::RequestsLimiter, killer: killer, min: 3072, max: 4096
+      )
+
+      config.middleware.insert_before(
+        ::Rack::Runtime,
+        ::WorkerKiller::Middleware::OOMLimiter, killer: killer, min: nil, max: 0.5, verbose: true, check_cycle: 16
+      )
+    end
+  end
+
+  # application.rb
+
+  ActiveSupport::Notifications.instrument 'initialize.custom.rails', config: config
 ```
 
 This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::MemoryLimiter, some Rack integration and DelayedJob plugin.

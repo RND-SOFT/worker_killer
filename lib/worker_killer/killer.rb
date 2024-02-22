@@ -38,5 +38,6 @@ end
 
 require_relative 'killer/signal'
 require_relative 'killer/passenger'
+require_relative 'killer/puma'
 require_relative 'killer/delayed_job'
 
