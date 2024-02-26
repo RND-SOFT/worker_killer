@@ -6,7 +6,9 @@ RSpec.describe WorkerKiller::Killer::Puma do
     end
   end
 
-  let(:killer){ described_class.new }
+  let(:ipc_path) { '/tmp/test_ipx.sock' }
+  let(:killer){ described_class.new(ipc_path: ipc_path, worker_num: 99) }
+  let(:buffer) { StringIO.new }
 
   describe '#kill' do
     around do |example|
@@ -18,11 +20,11 @@ RSpec.describe WorkerKiller::Killer::Puma do
     end
 
     it 'expect right signal order' do
-      expect(Kernel).to receive(:system).with('pumactl phased-restart').and_return(true)
+      expect(Socket).to receive(:unix).with(ipc_path).and_yield(buffer).exactly(4).times
       expect(Process).to receive(:kill).with(:KILL, anything).exactly(5).times
 
-      thread = killer.kill(Time.now)
-      thread.join
+      killer.kill(Time.now)
+      expect(buffer.string.strip).to eq(99.to_s)
 
       1.times { killer.kill(Time.now) } # 1 QUIT
       2.times { killer.kill(Time.now) } # 1 TERM

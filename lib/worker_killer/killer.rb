@@ -2,7 +2,7 @@ module WorkerKiller
   module Killer
     class Base
 
-      attr_accessor :config, :kill_attempts, :logger
+      attr_accessor :config, :kill_attempts
 
       def initialize(logger: nil, **_kwargs)
         @logger = logger
@@ -27,7 +27,7 @@ module WorkerKiller
         raise 'Not Implemented'
       end
       # :nocov:
-      
+
       def logger
         @logger || WorkerKiller.configuration.logger
       end

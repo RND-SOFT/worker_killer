@@ -1,56 +1,78 @@
+require 'singleton'
+
 require 'worker_killer/memory_limiter'
 require 'worker_killer/count_limiter'
-require 'puma/plugin'
 
-Puma::Plugin.create do
 
 module WorkerKiller
   class PumaPlugin
 
-    attr_reader :limiter, :killer, :reaction
+    include Singleton
 
-    def initialize(klass:, killer:, reaction: nil, **opts)
-      @killer = killer
+    attr_accessor :ipc_path, :killer, :thread
 
-      @reaction = reaction || proc do |l, k, dj|
-        k.kill(l.started_at, dj: dj)
-      end
-
-      @limiter = klass.new(**opts)
-      @time_to_burn = false
+    def initialize
+      @ipc_path = File.join('tmp', "puma_worker_killer_#{Process.pid}.socket")
+      @killer = ::WorkerKiller::Killer::Puma.new(worker_num: nil, ipc_path: ipc_path)
+      log "Initializing IPC: #{@ipc_path}"
     end
 
-    def new(lifecycle = Delayed::Worker.lifecycle, *_args)
-      configure_lifecycle(lifecycle)
-    end
-
-    def configure_lifecycle(lifecycle)
-      # Count condition after every job
-      lifecycle.after(:perform) do |worker, *_args|
-        @time_to_burn ||= limiter.check
-      end
-      
-      # Stop execution only after whole loop completed
-      lifecycle.after(:loop) do |worker, *_args|
-        @time_to_burn ||= limiter.check
-        reaction.call(limiter, killer, worker) if @time_to_burn
+    def config(puma)
+      puma.on_worker_boot do |num|
+        log "Set worker_num: #{num}"
+        @killer.worker_num = num
       end
     end
 
-    class JobsLimiter < ::WorkerKiller::PumaPlugin
+    def start(launcher)
+      @runner = launcher.instance_variable_get('@runner')
 
-      def initialize(**opts)
-        super(klass: ::WorkerKiller::CountLimiter, **opts)
+      launcher.events.on_booted do
+        @thread ||= start_ipc_listener
       end
-
     end
 
-    class OOMLimiter < ::WorkerKiller::PumaPlugin
+    def start_ipc_listener
+      log 'Start IPC listener'
+      Thread.new do
+        Socket.unix_server_loop(ipc_path) do |sock, *args|
+          if (line = sock.gets)
+            worker_num = Integer(line.strip)
+            if (worker = find_worker(worker_num))
+              log "Killing worker #{worker_num}"
+              worker.term!
+            end
+          end
+        rescue StandardError => e
+          log("Exception: #{e.inspect}")
+        ensure
+          sock.close
+        end
+      end
+    end
 
-      def initialize(**opts)
-        super(klass: ::WorkerKiller::MemoryLimiter, **opts)
+    def find_worker(worker_num)
+      worker = @runner.worker_at(worker_num)
+      unless worker
+        log "Unknown worker index: #{worker_num.inspect}. Skipping."
+        return nil
       end
 
+      unless worker.booted?
+        log "Worker #{worker_num.inspect} is not booted yet. Skipping."
+        return nil
+      end
+
+      if worker.term?
+        log "Worker #{worker_num.inspect} already terminating. Skipping."
+        return nil
+      end
+
+      worker
+    end
+
+    def log(msg)
+      warn("#{self.class}[#{Process.pid}]: #{msg}")
     end
 
   end

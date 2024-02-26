@@ -4,21 +4,30 @@ RSpec.describe WorkerKiller::CountLimiter do
   let(:max){ min + rand(100) }
   let(:options){ { min: min, max: max, verbose: true } }
 
-  it { is_expected.to have_attributes(min: min, max: max, limit: a_value_between(min, max), left: subject.limit) }
+  it { is_expected.to have_attributes(min: min, max: max, limit: nil, left: nil) }
 
-  it 'expect not to react while less than limit' do
-    (subject.limit - 1).times do
-      expect(subject.check).to be_falsey
+  context 'initialize limits after first check' do
+    before { subject.check }
+
+    it {
+      is_expected.to have_attributes(min: min, max: max,
+                                     limit: a_value_between(min, max), left: subject.limit - 1)
+    }
+
+    it 'expect not to react while less than limit' do
+      (subject.limit - 2).times do
+        expect(subject.check).to be_falsey
+      end
     end
-  end
 
-  it 'expect call reaction when check succeded' do
-    (subject.limit - 1).times do
-      expect(subject.check).to be_falsey
+    it 'expect call reaction when check succeded' do
+      (subject.limit - 2).times do
+        expect(subject.check).to be_falsey
+      end
+
+      expect(subject.check).to be_truthy
+      expect(subject.check).to be_truthy
     end
-
-    expect(subject.check).to be_truthy
-    expect(subject.check).to be_truthy
   end
 end
 

@@ -10,8 +10,6 @@ module WorkerKiller
         # set static memory limits
         @min = min
         @max = max
-        @limit = @min + WorkerKiller.randomize(@max - @min + 1)
-        @limit_mb = (@limit / 1024 / 1024).round(1)
       else
         # prepare for relative memory limits
         @max_percent = max
@@ -26,11 +24,19 @@ module WorkerKiller
       @started_at ||= Time.now
       @check_count += 1
 
+
       return nil if (@check_count % @check_cycle) != 0
 
       rss = GetProcessMem.new.bytes
+
       # initialize relative memory limits on first check
-      set_limits(rss, rss + rss * @max_percent) if min.nil?
+      if @limit.nil?
+        if min.nil?
+          set_limits(rss, rss + rss * @max_percent)
+        else
+          set_limits(min, min + WorkerKiller.randomize(max - min + 1))
+        end
+      end
 
       do_check(rss)
     end
@@ -52,7 +58,8 @@ module WorkerKiller
 
     def set_limits(min, max)
       @min = min
-      @limit = @max = max
+      @limit = max
+      @max ||= max
       @limit_mb = (@limit / 1024 / 1024).round(1)
     end
 
