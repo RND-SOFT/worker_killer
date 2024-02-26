@@ -20,8 +20,8 @@ RSpec.describe WorkerKiller::Killer::Puma do
     end
 
     it 'expect right signal order' do
-      expect(Socket).to receive(:unix).with(ipc_path).and_yield(buffer).exactly(4).times
-      expect(Process).to receive(:kill).with(:KILL, anything).exactly(5).times
+      expect(Socket).to receive(:unix).with(ipc_path).and_yield(buffer).exactly(3).times
+      expect(Process).not_to receive(:kill)
 
       killer.kill(Time.now)
       expect(buffer.string.strip).to eq(99.to_s)
