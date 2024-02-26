@@ -17,7 +17,7 @@ Features:
 
 - generic middleware implementation
 - Phusion Passenger support(through `passenger-config detach-process <PID>`)
-- Puma phased-restart support(through `pumactl phased-restart`)
+- Puma support through native plugin
 - DelayedJob support
 - custom reaction hook
 
@@ -82,33 +82,26 @@ Add these lines to your `puma.rb` AND `application.rb`.
 ```ruby
   # puma.rb
 
-  on_worker_boot do |*args|
-    require 'worker_killer/killer'
-    require 'active_support/notifications'
-
-    ::ActiveSupport::Notifications.subscribe 'initialize.custom.rails' do |*eargs|
-      event = ActiveSupport::Notifications::Event.new(*eargs)
-      config = event.payload[:config]
-
-      killer = ::WorkerKiller::Killer::Puma.new
-      config.middleware.insert_before(
-        ::Rack::Runtime,
-        ::WorkerKiller::Middleware::RequestsLimiter, killer: killer, min: 3072, max: 4096
-      )
-
-      config.middleware.insert_before(
-        ::Rack::Runtime,
-        ::WorkerKiller::Middleware::OOMLimiter, killer: killer, min: nil, max: 0.5, verbose: true, check_cycle: 16
-      )
-    end
-  end
+  require 'worker_killer/puma/plugin/worker_killer'
+  plugin('worker_killer')
 
   # application.rb
+  if defined?(::Puma::Client)
+    killer = ::WorkerKiller::PumaPlugin.instance.killer
 
-  ActiveSupport::Notifications.instrument 'initialize.custom.rails', config: config
+    config.middleware.insert_before(
+      Rack::Runtime,
+      WorkerKiller::Middleware::OOMLimiter, killer: killer, min: nil, max: 0.5, verbose: false, check_cycle: 16
+    )
+
+    config.middleware.insert_before(
+      Rack::Runtime,
+      WorkerKiller::Middleware::RequestsLimiter, killer: killer, min: 3000, max: 4000, verbose: false
+    )
+  end
 ```
 
-This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::MemoryLimiter, some Rack integration and DelayedJob plugin.
+This gem provides two modules: WorkerKiller::CountLimiter and WorkerKiller::MemoryLimiter, some Rack integration, DelayedJob plugin and Puma plugin.
 
 ### WorkerKiller::Middleware::RequestsLimiter and WorkerKiller::DelayedJobPlugin::JobsLimiter
 
@@ -127,6 +120,29 @@ This module automatically restarts/kills the workers, based on its memory size.
 The memory size check is done in every `check_cycle` requests.
 
 If `verbose` is set to true, then every memory size check will be shown in your logs. This logging is done at the `info` level.
+
+### WorkerKiller::PumaPlugin
+
+Works in Puma `Cluster Mode`. Work correctly with `phased-restart` and `fork_workers`, but has maximum effectivity (memory usage) in simple `Cluster Mode` with **preload_app!**.
+
+Example production config: 
+
+```ruby
+  port ENV.fetch('PUMA_PORT', 3000).to_i
+
+  environment ENV.fetch('RAILS_ENV', 'development')
+
+  pidfile ENV.fetch('PUMA_PIDFILE', 'tmp/pids/server.pid')
+
+  threads ENV.fetch('PUMA_THREADS', 4).to_i
+
+  workers ENV.fetch('PUMA_WORKERS', 3).to_i
+
+  require 'worker_killer/puma/plugin/worker_killer'
+  plugin('worker_killer')
+
+  preload_app!
+```
 
 # Special Thanks
 
