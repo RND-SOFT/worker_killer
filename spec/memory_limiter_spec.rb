@@ -22,12 +22,21 @@ RSpec.describe WorkerKiller::MemoryLimiter do
     let(:min){ rand(50..100) * mb }
     let(:max){ min + rand(100) * mb }
 
-    it { is_expected.to have_attributes(min: min, max: max, limit: a_value_between(min, max)) }
+    it { is_expected.to have_attributes(min: min, max: max, limit: nil) }
 
     it 'expect to skip check while less than cycle count' do
       expect(GetProcessMem).not_to receive(:new)
 
       skip_cycles(subject, check_cycle)
+    end
+
+    it 'expect to initialize limits after cycle count' do
+      expect(memory).to receive(:bytes).and_return(min)
+      is_expected.to have_attributes(min: min, max: max, limit: nil)
+
+      skip_cycles(subject, check_cycle)
+      subject.check
+      is_expected.to have_attributes(min: min, max: max, limit: a_value_between(min, max))
     end
 
     it 'expect to skip check after cycle count reached' do
@@ -38,8 +47,12 @@ RSpec.describe WorkerKiller::MemoryLimiter do
     end
 
     it 'expect call reaction when check succeded' do
-      expect(memory).to receive(:bytes).and_return(subject.limit + 1)
+      expect(memory).to receive(:bytes).and_return(min)
 
+      skip_cycles(subject, check_cycle)
+      subject.check
+
+      expect(memory).to receive(:bytes).and_return(subject.limit + 1)
       skip_cycles(subject, check_cycle)
       expect(subject.check).to be_truthy
     end

@@ -6,13 +6,19 @@ module WorkerKiller
     def initialize(min: 3072, max: 4096, verbose: false)
       @min = min
       @max = max
-      @limit = @min + WorkerKiller.randomize(@max - @min + 1)
-      @left = @limit
+      @limit = nil
+      @left = nil
       @verbose = verbose
     end
 
     def check
-      return nil if @limit <= 1
+      # initialize limits on first check
+      if @limit.nil?
+        @limit = min + WorkerKiller.randomize(max - min + 1)
+        @left = @limit
+      end
+
+      return nil if @limit < 1
 
       @started_at ||= Time.now
 

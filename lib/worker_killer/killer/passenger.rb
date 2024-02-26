@@ -42,7 +42,7 @@ module WorkerKiller
       end
 
       def self.check_passenger_config! path
-        if path = check_passenger_config(path)
+        if (path = check_passenger_config(path))
           path
         else
           raise "Can't find passenger config at #{path.inspect}"

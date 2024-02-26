@@ -19,7 +19,7 @@ RSpec.describe WorkerKiller::Killer::Base do
       end
 
       it 'expect right signal order' do
-        if RUBY_VERSION >= "3.0.0"
+        if RUBY_VERSION >= "2.7.0"
           expect(killer).to receive(:do_kill).with(:QUIT, anything, anything).exactly(2).times
           expect(killer).to receive(:do_kill).with(:TERM, anything, anything).exactly(2).times
           expect(killer).to receive(:do_kill).with(:KILL, anything, anything).exactly(5).times
