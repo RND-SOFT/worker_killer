@@ -15,7 +15,7 @@ module ::WorkerKiller
       def do_kill(sig, pid, alive_sec, **_params)
         return if @already_sended == sig
 
-        logger.warn "#{self} send #{worker_num} to Puma Plugin (pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts})"
+        logger.warn "#{self} send #{worker_num} to Puma Plugin (pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts}) triggered by #{sig}"
 
         @already_sended = sig
 
