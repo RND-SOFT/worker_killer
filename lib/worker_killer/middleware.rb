@@ -43,6 +43,8 @@ module WorkerKiller
     end
 
     def with_inhibition(tuple)
+      # Почему именно each описано в спецификации в разделе The Response
+      # https://github.com/rack/rack/blob/main/SPEC.rdoc
       if tuple[2].respond_to?(:each)
         old = tuple[2]
         tuple[2] = Enumerator.new do |y|

@@ -43,7 +43,13 @@ module WorkerKiller
         @debug = true
       end
 
-      dsl.before_worker_boot do |num|
+      cb = if dsl.respond_to?(:before_worker_boot)
+        :before_worker_boot
+      else 
+        :on_worker_boot
+      end
+      
+      dsl.send(cb) do |num|
         @killer.worker_num = num
         @worker_num = num
         @tag = nil
