@@ -1,5 +1,3 @@
-require "puma/thread_pool"
-
 RSpec.describe WorkerKiller::PumaPluginNg do
   subject(:plugin){ described_class.send(:new) }
   let(:dsl) { double }
@@ -52,6 +50,8 @@ RSpec.describe WorkerKiller::PumaPluginNg do
 
   context '#do_kill' do
     it do
+      Thread.attr_accessor(:puma_server)
+
       plugin.instance_variable_set('@worker_num', 99)
       plugin.request_restart_server(99)
       puma_server = double()
