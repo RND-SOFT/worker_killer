@@ -45,10 +45,10 @@ module WorkerKiller
 
       cb = if dsl.respond_to?(:before_worker_boot)
         :before_worker_boot
-      else 
+      else
         :on_worker_boot
       end
-      
+
       dsl.send(cb) do |num|
         @killer.worker_num = num
         @worker_num = num
@@ -67,7 +67,7 @@ module WorkerKiller
 
       cb = if launcher.events.respond_to?(:after_booted)
         :after_booted
-      else 
+      else
         :on_booted
       end
 

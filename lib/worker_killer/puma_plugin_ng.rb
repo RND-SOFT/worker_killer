@@ -49,10 +49,10 @@ module WorkerKiller
 
       cb = if dsl.respond_to?(:before_worker_boot)
         :before_worker_boot
-      else 
+      else
         :on_worker_boot
       end
-      
+
       dsl.send(cb) do |num|
         @killer.worker_num = num
         @worker_num = num
@@ -93,7 +93,7 @@ module WorkerKiller
       return if @worker_num != worker_num
 
       cnt = inhibited[worker_num] += 1 # just increase inhibit counter
-      log("Worker inhibition increased: #{cnt}")
+      debug("Worker inhibition increased: #{cnt}")
     end
 
     # Этот метод зовётся из Middleware внтури воркера
@@ -101,11 +101,11 @@ module WorkerKiller
       return if @worker_num != worker_num
 
       cnt = inhibited[worker_num] -= 1 # just decrease inhibit counter
-      log("Worker inhibition decreased: #{cnt}")
+      debug("Worker inhibition decreased: #{cnt}")
       return unless cnt <= 0
 
       inhibited.delete(worker_num)
-      log('Worker released')
+      debug('Worker released')
       do_kill('RELEASE') if @force_restart
     end
 
