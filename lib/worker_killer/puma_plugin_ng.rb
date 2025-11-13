@@ -1,12 +1,12 @@
 require 'delegate'
 require 'singleton'
-require 'socket'
 
 require 'worker_killer/memory_limiter'
 require 'worker_killer/count_limiter'
 
+
 module WorkerKiller
-  class PumaPlugin
+  class PumaPluginNg
 
     include Singleton
 
@@ -26,14 +26,18 @@ module WorkerKiller
 
     end
 
-    attr_accessor :ipc_path, :killer, :thread
+    attr_accessor :killer, :puma_server, :inhibited, :kill_queue
 
     def initialize
       @killer = ::WorkerKiller::Killer::Puma.new(worker_num: nil, puma_plugin: self)
       @worker_num = nil
       @debug = false
 
-      @ipc_path = File.join('tmp', "puma_worker_killer_#{Process.pid}.socket")
+      @puma_server = nil
+
+      @force_restart = false
+      @inhibited ||= Hash.new {|h, k| h[k] = 0 }
+      @kill_queue ||= Set.new
     end
 
     # Этот метод зовётся при ИНИЦИАЛИЗАЦИИ плагина внути master-процесса, в самомо начале
@@ -49,80 +53,64 @@ module WorkerKiller
         @tag = nil
         log "Set worker_num: #{num}"
       end
+
+      dsl.out_of_band do
+        do_kill('OOB') unless @force_restart
+      end
     end
 
     # Этот метод зовётся при ИНИЦИАЛИЗАЦИИ плагина внути master-процесса, контролирующего кластер Puma
     # псле форка данные сохранённые тут также доступны (например logger)
     def start(launcher)
       set_logger!(PumaLogWrapper.new(launcher.log_writer))
-
-      log "Initializing IPC: #{@ipc_path}"
-      @runner = launcher.instance_variable_get('@runner')
-
-      launcher.events.on_booted do
-        @thread ||= start_ipc_listener
-      end
     end
 
     def set_logger!(logger)
       @logger = logger
     end
 
+    # Завершать процесс сразу после окончания inhibited метода. Иначе завершение будет происзодть в Out Of Band методе
+    def force_restart!(force = true)
+      @force_restart = force
+    end
+
     # Этот метод зовётся из Middleware внтури воркера
     def request_restart_server(worker_num)
+      return if @worker_num != worker_num
+
       log("Equeue worker #{worker_num} for restarting...")
-      Socket.unix(ipc_path) do |sock|
-        sock.puts Integer(worker_num).to_s
-      end
+      kill_queue << worker_num
     end
 
     # Этот метод зовётся из Middleware внтури воркера
-    def inhibit_restart(_worker_num)
-      nil
+    def inhibit_restart(worker_num)
+      return if @worker_num != worker_num
+
+      cnt = inhibited[worker_num] += 1 # just increase inhibit counter
+      log("Worker inhibition increased: #{cnt}")
     end
 
     # Этот метод зовётся из Middleware внтури воркера
-    def release_restart(_worker_num)
-      nil
+    def release_restart(worker_num)
+      return if @worker_num != worker_num
+
+      cnt = inhibited[worker_num] -= 1 # just decrease inhibit counter
+      log("Worker inhibition decreased: #{cnt}")
+      return unless cnt <= 0
+
+      inhibited.delete(worker_num)
+      log('Worker released')
+      do_kill('RELEASE') if @force_restart
     end
 
-    def start_ipc_listener
-      log "Start IPC listener on #{@ipc_path}"
-      Thread.new do
-        Socket.unix_server_loop(ipc_path) do |sock, *_args|
-          if (line = sock.gets)
-            worker_num = Integer(line.strip)
-            if (worker = find_worker(worker_num))
-              log "Killing worker #{worker_num}"
-              worker.term!
-            end
-          end
-        rescue StandardError => e
-          log("Exception: #{e.inspect}")
-        ensure
-          sock.close
-        end
-      end
-    end
+    def do_kill(name)
+      return if kill_queue.empty?
 
-    def find_worker(worker_num)
-      worker = @runner.worker_at(worker_num)
-      unless worker
-        log "Unknown worker index: #{worker_num.inspect}. Skipping."
-        return nil
+      log "Killing workers by #{name}: #{kill_queue}"
+      (kill_queue - inhibited.keys).each do |worker_num|
+        kill_queue.delete(worker_num)
+        Thread.current.puma_server.begin_restart
       end
-
-      unless worker.booted?
-        log "Worker #{worker_num.inspect} is not booted yet. Skipping."
-        return nil
-      end
-
-      if worker.term?
-        log "Worker #{worker_num.inspect} already terminating. Skipping."
-        return nil
-      end
-
-      worker
     end
 
     def log(msg)

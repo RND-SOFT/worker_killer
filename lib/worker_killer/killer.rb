@@ -29,7 +29,7 @@ module WorkerKiller
       # :nocov:
 
       def logger
-        @logger || WorkerKiller.configuration.logger
+        @logger ||= WorkerKiller.configuration.logger
       end
 
     end

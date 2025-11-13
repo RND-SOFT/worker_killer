@@ -1,34 +1,29 @@
 RSpec.describe WorkerKiller::Killer::Puma do
-  let(:config) do
-    WorkerKiller::Configuration.new.tap do |c|
-      c.quit_attempts = 2
-      c.term_attempts = 2
+  let(:puma_plugin) { double(set_logger!: nil) }
+  let(:killer){ described_class.new(puma_plugin: puma_plugin, worker_num: 99) }
+
+  describe '#kill' do
+    it do
+      expect(puma_plugin).to receive(:request_restart_server)
+
+      killer.kill(Time.now)
     end
   end
 
-  let(:ipc_path) { '/tmp/test_ipx.sock' }
-  let(:killer){ described_class.new(ipc_path: ipc_path, worker_num: 99) }
-  let(:buffer) { StringIO.new }
+  describe '#do_inhibit' do
+    it do
+      expect(puma_plugin).to receive(:inhibit_restart)
 
-  describe '#kill' do
-    around do |example|
-      prev = WorkerKiller.configuration
-      WorkerKiller.configuration = config
-      example.run
-    ensure
-      WorkerKiller.configuration = prev
+      killer.do_inhibit('something')
     end
+  end
 
-    it 'expect right signal order' do
-      expect(Socket).to receive(:unix).with(ipc_path).and_yield(buffer).exactly(3).times
-      expect(Process).not_to receive(:kill)
+  describe '#do_release' do
+    it do
+      expect(puma_plugin).to receive(:release_restart)
 
-      killer.kill(Time.now)
-      expect(buffer.string.strip).to eq(99.to_s)
 
-      1.times { killer.kill(Time.now) } # 1 QUIT
-      2.times { killer.kill(Time.now) } # 1 TERM
-      5.times { killer.kill(Time.now) } # 5 KILL
+      killer.do_release
     end
   end
 end
