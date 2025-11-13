@@ -20,10 +20,6 @@ module WorkerKiller
         __getobj__.log(msg)
       end
 
-      def debug(msg)
-        __getobj__.log("(DEBUG) #{msg}")
-      end
-
     end
 
     attr_accessor :ipc_path, :killer, :thread
@@ -153,7 +149,7 @@ module WorkerKiller
       return unless @debug
 
       if @logger
-        @logger.debug("#{tag} #{msg}")
+        @logger.warn("#{tag} (DEBUG) #{msg}")
       else
         warn("[#{Process.pid}] #{tag} (DEBUG) #{msg}")
       end
