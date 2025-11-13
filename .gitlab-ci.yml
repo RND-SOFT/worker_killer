@@ -3,7 +3,7 @@ stages:
   - deploy
 
 .test:
-  image: rnds/ruby:2.5-test
+  image: rnds/ruby:3.0-test
   stage: build
   variables:
     COMPOSE_PROJECT_NAME: wkiller_${CI_PIPELINE_ID}_${CI_JOB_ID}
@@ -36,7 +36,7 @@ ruby-3.1:
 
 
 build:
-  image: rnds/ruby:2.5-test
+  image: rnds/ruby:3.0-test
   stage: build
   variables:
     BUILDVERSION: ${CI_PIPELINE_ID}
@@ -55,7 +55,7 @@ build:
     - master
 
 pushgem:
-  image: rnds/ruby:2.5-test
+  image: rnds/ruby:3.0-test
   stage: deploy
   script:
     - mkdir -p ~/.gem
@@ -67,7 +67,7 @@ pushgem:
     - master
 
 badges:
-  image: rnds/ruby:2.5-test
+  image: rnds/ruby:3.0-test
   stage: deploy
   allow_failure: true
   variables:
