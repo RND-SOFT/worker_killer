@@ -65,7 +65,13 @@ module WorkerKiller
       log "Initializing IPC: #{@ipc_path}"
       @runner = launcher.instance_variable_get('@runner')
 
-      launcher.events.on_booted do
+      cb = if launcher.events.respond_to?(:after_booted)
+        :after_booted
+      else 
+        :on_booted
+      end
+
+      launcher.events.send(cb) do
         @thread ||= start_ipc_listener
       end
     end
