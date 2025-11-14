@@ -56,7 +56,6 @@ module WorkerKiller
       return false if rss <= @limit
 
       @triggered = true
-
       logger.warn "#{self.class}: worker (pid: #{Process.pid}) exceeds memory limit (#{rss_mb} MB > #{@limit_mb} MB)"
 
       true

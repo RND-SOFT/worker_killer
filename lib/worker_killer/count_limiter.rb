@@ -32,7 +32,7 @@ module WorkerKiller
 
       return false if (@left -= 1) > 0
 
-      # сработает только один раз для @left == 0
+      @triggered = true
       logger.warn "#{self.class}: worker (pid: #{Process.pid}) exceeds max number of requests (limit: #{@limit})"
       true
     end
