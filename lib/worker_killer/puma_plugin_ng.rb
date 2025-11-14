@@ -50,8 +50,6 @@ module WorkerKiller
         :on_worker_boot
       end
 
-      puts "SEND:#{cb}"
-
       dsl.send(cb) do |num|
         @killer.worker_num = num
         @worker_num = num
@@ -112,7 +110,7 @@ module WorkerKiller
     end
 
     def tag
-      @tag ||= "[#{self.class}] #{@worker_num.nil? ? '[M]' : "[W#{@worker_num}]"}"
+      @tag ||= "[#{self.class}] #{@worker_num.nil? ? '[M]' : "[W#{@worker_num}]"} #{@force_restart ? '(Force)' : ''}"
     end
 
     def debug(msg)
