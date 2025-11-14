@@ -1,40 +1,24 @@
 RSpec.describe WorkerKiller::Killer::Base do
-  let(:config) do
-    WorkerKiller::Configuration.new.tap do |c|
-      c.quit_attempts = 2
-      c.term_attempts = 2
-    end
-  end
-
-  let(:killer){ described_class.new() }
+  let(:killer){ described_class.new }
 
   describe '#kill' do
-    context 'with use_quit TRUE' do
-      around do |example|
-        prev = WorkerKiller.configuration
-        WorkerKiller.configuration = config
-        example.run
-      ensure
-        WorkerKiller.configuration = prev
+    it 'expect right signal order' do
+      if RUBY_VERSION >= '2.7.0'
+        expect(killer).to receive(:do_kill).with(:QUIT, anything, anything).exactly(1).times
+        expect(killer).to receive(:do_kill).with(:TERM, anything, anything).exactly(1).times
+        expect(killer).to receive(:do_kill).with(:KILL, anything, anything).exactly(6).times
+      else
+        expect(killer).to receive(:do_kill).with(:QUIT, anything, anything,
+                                                 anything).exactly(1).times
+        expect(killer).to receive(:do_kill).with(:TERM, anything, anything,
+                                                 anything).exactly(1).times
+        expect(killer).to receive(:do_kill).with(:KILL, anything, anything,
+                                                 anything).exactly(6).times
       end
 
-      it 'expect right signal order' do
-        if RUBY_VERSION >= "2.7.0"
-          expect(killer).to receive(:do_kill).with(:QUIT, anything, anything).exactly(2).times
-          expect(killer).to receive(:do_kill).with(:TERM, anything, anything).exactly(2).times
-          expect(killer).to receive(:do_kill).with(:KILL, anything, anything).exactly(5).times
-        else
-          expect(killer).to receive(:do_kill).with(:QUIT, anything, anything, anything).exactly(2).times
-          expect(killer).to receive(:do_kill).with(:TERM, anything, anything, anything).exactly(2).times
-          expect(killer).to receive(:do_kill).with(:KILL, anything, anything, anything).exactly(5).times
-        end
-
-        2.times { killer.kill(Time.now) } # 2 QUIT
-        2.times { killer.kill(Time.now) } # 2 TERM
-        5.times { killer.kill(Time.now) } # other - KILL
-      end
+      3.times { killer.kill(Time.now) } # 1 QUIT, 1 TERM, 1 KILL
+      5.times { killer.kill(Time.now) } # 5 KILL
     end
-
   end
 end
 

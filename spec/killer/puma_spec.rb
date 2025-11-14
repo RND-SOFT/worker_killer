@@ -10,21 +10,5 @@ RSpec.describe WorkerKiller::Killer::Puma do
     end
   end
 
-  describe '#do_inhibit' do
-    it do
-      expect(puma_plugin).to receive(:inhibit_restart)
-
-      killer.do_inhibit('something')
-    end
-  end
-
-  describe '#do_release' do
-    it do
-      expect(puma_plugin).to receive(:release_restart)
-
-
-      killer.do_release
-    end
-  end
 end
 

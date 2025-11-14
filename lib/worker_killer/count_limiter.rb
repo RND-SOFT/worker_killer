@@ -8,19 +8,23 @@ module WorkerKiller
       @max = max
       @limit = nil
       @left = nil
+
+      @started_at = Time.now
+      @triggered = false
       @verbose = verbose
     end
 
+    def initialize_limits
+      @limit = min + WorkerKiller.randomize(max - min + 1)
+      @left = @limit
+    end
+
     def check
-      # initialize limits on first check
-      if @limit.nil?
-        @limit = min + WorkerKiller.randomize(max - min + 1)
-        @left = @limit
-      end
+      return true if @triggered
+
+      initialize_limits if @limit.nil?
 
       return nil if @limit < 1
-
-      @started_at ||= Time.now
 
       if @verbose
         logger.info "#{self.class}: worker (pid: #{Process.pid}) has #{@left} left before being limited"
@@ -28,8 +32,8 @@ module WorkerKiller
 
       return false if (@left -= 1) > 0
 
+      # сработает только один раз для @left == 0
       logger.warn "#{self.class}: worker (pid: #{Process.pid}) exceeds max number of requests (limit: #{@limit})"
-
       true
     end
 

@@ -8,6 +8,7 @@ module WorkerKiller
         @logger = logger
         @config = WorkerKiller.configuration
         @kill_attempts = 0
+        @sig = nil
       end
 
       def kill(start_time, **params)
@@ -15,11 +16,16 @@ module WorkerKiller
 
         @kill_attempts += 1
 
-        sig = :QUIT
-        sig = :TERM if kill_attempts > config.quit_attempts
-        sig = :KILL if kill_attempts > (config.quit_attempts + config.term_attempts)
+        case @sig
+        when nil
+          @sig = :QUIT
+        when :QUIT
+          @sig = :TERM
+        when :TERM
+          @sig = :KILL
+        end
 
-        do_kill(sig, Process.pid, alive_sec, **params)
+        do_kill(@sig, Process.pid, alive_sec, **params)
       end
 
       # :nocov:

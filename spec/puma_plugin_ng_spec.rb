@@ -8,7 +8,6 @@ RSpec.describe WorkerKiller::PumaPluginNg do
 
   it {
     is_expected.to have_attributes(killer:     ::WorkerKiller::Killer::Puma,
-                                   inhibited:  Hash,
                                    kill_queue: Set)
   }
 
@@ -32,29 +31,13 @@ RSpec.describe WorkerKiller::PumaPluginNg do
     end
   end
 
-  context '#inhibit_restart' do
-    it do
-      plugin.instance_variable_set('@worker_num', 99)
-      expect { plugin.inhibit_restart(99) }.to change { plugin.inhibited }.from({}).to({ 99 => 1 })
-    end
-  end
-
-  context '#release_restart' do
-    it do
-      plugin.instance_variable_set('@worker_num', 99)
-      plugin.inhibit_restart(99)
-
-      expect { plugin.release_restart(99) }.to change { plugin.inhibited }.from({ 99 => 1 }).to({})
-    end
-  end
-
   context '#do_kill' do
     it do
       Thread.attr_accessor(:puma_server)
 
       plugin.instance_variable_set('@worker_num', 99)
       plugin.request_restart_server(99)
-      puma_server = double()
+      puma_server = double(options: {})
       Thread.current.puma_server = puma_server
       expect(puma_server).to receive(:begin_restart)
 

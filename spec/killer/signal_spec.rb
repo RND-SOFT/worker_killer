@@ -1,32 +1,14 @@
 RSpec.describe WorkerKiller::Killer::Signal do
-  let(:config) do
-    WorkerKiller::Configuration.new.tap do |c|
-      c.quit_attempts = 2
-      c.term_attempts = 2
-    end
-  end
-
-  let(:killer){ described_class.new() }
+  let(:killer){ described_class.new }
 
   describe '#kill' do
-    context 'with use_quit TRUE' do
-      around do |example|
-        prev = WorkerKiller.configuration
-        WorkerKiller.configuration = config
-        example.run
-      ensure
-        WorkerKiller.configuration = prev
-      end
+    it 'expect right signal order' do
+      expect(Process).to receive(:kill).with(:QUIT, anything).exactly(1).times
+      expect(Process).to receive(:kill).with(:TERM, anything).exactly(1).times
+      expect(Process).to receive(:kill).with(:KILL, anything).exactly(1).times
 
-      it 'expect right signal order' do
-        expect(Process).to receive(:kill).with(:QUIT, anything).exactly(1).times
-        expect(Process).to receive(:kill).with(:TERM, anything).exactly(1).times
-        expect(Process).to receive(:kill).with(:KILL, anything).exactly(1).times
-
-        2.times { killer.kill(Time.now) } # 1 QUIT
-        2.times { killer.kill(Time.now) } # 1 TERM
-        5.times { killer.kill(Time.now) } # 1 KILL
-      end
+      3.times { killer.kill(Time.now) } # 1 QUIT 1 TERM 1 KILL
+      5.times { killer.kill(Time.now) } # nothing
     end
   end
 end

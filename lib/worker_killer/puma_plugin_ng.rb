@@ -22,7 +22,7 @@ module WorkerKiller
 
     end
 
-    attr_accessor :killer, :puma_server, :inhibited, :kill_queue
+    attr_accessor :killer, :puma_server, :kill_queue
 
     def initialize
       @killer = ::WorkerKiller::Killer::Puma.new(worker_num: nil, puma_plugin: self)
@@ -31,9 +31,9 @@ module WorkerKiller
 
       @puma_server = nil
 
-      @force_restart = false
-      @inhibited ||= Hash.new {|h, k| h[k] = 0 }
+      @force_restart = %w[t 1].include?(ENV.fetch('WORKER_KILLER_PUMA_AGGRESSIVE', 'false').to_s.downcase[0].to_s)
       @kill_queue ||= Set.new
+      @last_restarted_at = 0.0
     end
 
     # Этот метод зовётся при ИНИЦИАЛИЗАЦИИ плагина внути master-процесса, в самомо начале
@@ -46,8 +46,11 @@ module WorkerKiller
       cb = if dsl.respond_to?(:before_worker_boot)
         :before_worker_boot
       else
+        # DEPRECATED
         :on_worker_boot
       end
+
+      puts "SEND:#{cb}"
 
       dsl.send(cb) do |num|
         @killer.worker_num = num
@@ -80,37 +83,22 @@ module WorkerKiller
     def request_restart_server(worker_num)
       return if @worker_num != worker_num
 
-      log("Equeue worker #{worker_num} for restarting...")
+      log("Enqueue worker #{worker_num} for restarting...")
       kill_queue << worker_num
-    end
-
-    # Этот метод зовётся из Middleware внтури воркера
-    def inhibit_restart(worker_num)
-      return if @worker_num != worker_num
-
-      cnt = inhibited[worker_num] += 1 # just increase inhibit counter
-      debug("Worker inhibition increased: #{cnt}")
-    end
-
-    # Этот метод зовётся из Middleware внтури воркера
-    def release_restart(worker_num)
-      return if @worker_num != worker_num
-
-      cnt = inhibited[worker_num] -= 1 # just decrease inhibit counter
-      debug("Worker inhibition decreased: #{cnt}")
-      return unless cnt <= 0
-
-      inhibited.delete(worker_num)
-      debug('Worker released')
-      do_kill('RELEASE') if @force_restart
+      do_kill('FORCE') if @force_restart
     end
 
     def do_kill(name)
       return if kill_queue.empty?
 
+      now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      return if now - @last_restarted_at < 10
+
+      @last_restarted_at = now
       log "Killing workers by #{name}: #{kill_queue}"
-      (kill_queue - inhibited.keys).each do |worker_num|
+      kill_queue.each do |worker_num|
         kill_queue.delete(worker_num)
+        Thread.current.puma_server.options[:force_shutdown_after] = nil
         Thread.current.puma_server.begin_restart
       end
     end

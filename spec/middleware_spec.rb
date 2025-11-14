@@ -1,7 +1,8 @@
 require 'securerandom'
 
 RSpec.describe WorkerKiller::Middleware do
-  let(:app){ double(call: {}) }
+  let(:rack_body) { double(each: %w[1 2 3], close: true) }
+  let(:app){ double(call: [nil, nil, rack_body]) }
   let(:killer) { double(WorkerKiller::Killer::Base, do_inhibit: true) }
   let(:reaction){ double }
   let(:anykey){ SecureRandom.hex(8) }
@@ -9,14 +10,15 @@ RSpec.describe WorkerKiller::Middleware do
   let(:env) { { 'PATH_INFO' => '/something' } }
 
   describe 'Custom class' do
-    let(:klass){ double }
+    let(:limiter_klass){ double }
     let(:options) do
-      { killer: killer, klass: klass, reaction: reaction, anykey: anykey, inhibitions: inhibitions }
+      { killer: killer, klass: limiter_klass, reaction: reaction, anykey: anykey,
+inhibitions: inhibitions }
     end
     subject{ described_class.new(app, **options) }
 
     it 'is expected to be initialized' do
-      expect(klass).to receive(:new).with(anykey: anykey).and_return(99)
+      expect(limiter_klass).to receive(:new).with(anykey: anykey).and_return(99)
       expect(subject.limiter).to eq(99)
       expect(subject.killer).to eq(killer)
     end
@@ -31,13 +33,12 @@ RSpec.describe WorkerKiller::Middleware do
       expect(subject.limiter).to be_an(WorkerKiller::CountLimiter)
       expect(subject.limiter.min).to eq(3)
       expect(subject.limiter.max).to eq(3)
-      expect(killer).to receive(:kill).with(Time).twice
+      expect(killer).to receive(:kill).with(Time)
 
       4.times do
         subject.call(env)
       end
     end
-
 
     describe 'inhibitions' do
       let(:env) { { 'PATH_INFO' => '/attachments' } }
@@ -47,11 +48,14 @@ RSpec.describe WorkerKiller::Middleware do
         expect(subject.limiter).to be_an(WorkerKiller::CountLimiter)
         expect(subject.limiter.min).to eq(3)
         expect(subject.limiter.max).to eq(3)
-        expect(killer).to receive(:kill).with(Time).twice
-        expect(killer).to receive(:do_release).exactly(4).times
+        expect(killer).to receive(:kill).with(Time)
+        expect(subject).to receive(:release).exactly(4).times.and_call_original
 
         4.times do
-          subject.call(env)
+          expect(app).to receive(:call).and_return([nil, nil, rack_body])
+          rack_response = subject.call(env)
+          subject.react
+          rack_response[2].each.to_a
         end
       end
     end
@@ -63,7 +67,7 @@ RSpec.describe WorkerKiller::Middleware do
       expect(subject.limiter).to be_an(WorkerKiller::CountLimiter)
       expect(subject.limiter.min).to eq(3)
       expect(subject.limiter.max).to eq(3)
-      expect(reaction).to receive(:call).with(subject.limiter, killer).twice
+      expect(reaction).to receive(:call).with(subject.limiter, killer)
 
       4.times do
         subject.call(env)

@@ -15,28 +15,32 @@ module WorkerKiller
         @max_percent = max
       end
 
+      @started_at = Time.now
       @check_cycle = check_cycle
       @check_count = 0
+
+      @triggered = false
       @verbose = verbose
     end
 
+    def initialize_limits(rss)
+      if min.nil?
+        set_limits(rss, rss + rss * @max_percent)
+      else
+        set_limits(min, min + WorkerKiller.randomize(max - min + 1))
+      end
+    end
+
     def check
-      @started_at ||= Time.now
       @check_count += 1
-
-
       return nil if (@check_count % @check_cycle) != 0
+
+      return true if @triggered
 
       rss = GetProcessMem.new.bytes
 
       # initialize relative memory limits on first check
-      if @limit.nil?
-        if min.nil?
-          set_limits(rss, rss + rss * @max_percent)
-        else
-          set_limits(min, min + WorkerKiller.randomize(max - min + 1))
-        end
-      end
+      initialize_limits(rss) if @limit.nil?
 
       do_check(rss)
     end
@@ -50,6 +54,8 @@ module WorkerKiller
       @check_count = 0
 
       return false if rss <= @limit
+
+      @triggered = true
 
       logger.warn "#{self.class}: worker (pid: #{Process.pid}) exceeds memory limit (#{rss_mb} MB > #{@limit_mb} MB)"
 

@@ -14,24 +14,12 @@ module ::WorkerKiller
         return if @worker_num.nil? # May be nil if Puma not in Cluster mode
         return if @already_sended == sig
 
-        logger.warn "#{self.class} send [W#{worker_num}] to Puma Plugin (from pid: #{pid}) alive: #{alive_sec} sec (trial #{kill_attempts}) triggered by #{sig}"
+        logger.warn "#{self.class} send [W#{worker_num}] to Puma Plugin (from pid: #{pid}) alive: #{alive_sec} sec (kill attempts #{kill_attempts}) triggered by #{sig}"
 
         @already_sended = sig
         @puma_plugin.set_logger!(logger)
 
         @puma_plugin.request_restart_server(worker_num)
-      end
-
-      def do_inhibit(_path_info)
-        @puma_plugin.set_logger!(logger)
-
-        @puma_plugin.inhibit_restart(worker_num)
-      end
-
-      def do_release
-        @puma_plugin.set_logger!(logger)
-
-        @puma_plugin.release_restart(worker_num)
       end
 
     end

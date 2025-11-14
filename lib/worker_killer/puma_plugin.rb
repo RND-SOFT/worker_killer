@@ -42,6 +42,7 @@ module WorkerKiller
       cb = if dsl.respond_to?(:before_worker_boot)
         :before_worker_boot
       else
+        # DEPRECATED
         :on_worker_boot
       end
 
@@ -64,6 +65,7 @@ module WorkerKiller
       cb = if launcher.events.respond_to?(:after_booted)
         :after_booted
       else
+        # DEPRECATED
         :on_booted
       end
 
